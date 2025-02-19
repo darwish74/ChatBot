@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34902.65
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBot", "ChatBot\ChatBot.csproj", "{904E3176-4ED7-4BB7-80A3-C7A273A22A6F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{904E3176-4ED7-4BB7-80A3-C7A273A22A6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{904E3176-4ED7-4BB7-80A3-C7A273A22A6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{904E3176-4ED7-4BB7-80A3-C7A273A22A6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{904E3176-4ED7-4BB7-80A3-C7A273A22A6F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {41D3552D-4045-4C18-A810-0744874141B6}
+	EndGlobalSection
+EndGlobal
