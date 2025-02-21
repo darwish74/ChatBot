@@ -15,57 +15,57 @@ namespace ChatBot.Controllers
     [ApiController]
     public class ChatController : ControllerBase
     {
-        private readonly DeepSeekService _deepSeekService;
+        private readonly GeminiService _geminiService;
         private readonly MessageRepository _messageRepository;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<User> _userManager;
 
-        public ChatController(DeepSeekService deepSeekService, MessageRepository messageRepository,UserManager<User> userManager)
+        public ChatController(GeminiService geminiService, MessageRepository messageRepository, UserManager<User> userManager)
         {
-            _deepSeekService = deepSeekService;
+            _geminiService = geminiService;
             _messageRepository = messageRepository;
-            this.userManager = userManager;
+            _userManager = userManager;
         }
 
-    [Authorize] 
-    [HttpPost("chat")]
-    public async Task<IActionResult> ChatWithDeepSeek([FromBody] ChatRequestDto requestDto)
-    {
-        if (string.IsNullOrWhiteSpace(requestDto.Content))
-            return BadRequest(new { message = "Message content is required." });
-        try
+        [Authorize]
+        [HttpPost("chat")]
+        public async Task<IActionResult> ChatWithGemini([FromBody] ChatRequestDto requestDto)
         {
-            var user = await userManager.GetUserAsync(User);
-            if (user == null)
+            if (string.IsNullOrWhiteSpace(requestDto.Content))
+                return BadRequest(new { message = "Message content is required." });
+
+            try
             {
-                return Unauthorized(new { message = "User not authenticated. Please log in." });
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Unauthorized(new { message = "User not authenticated. Please log in." });
+                }
+
+                var userMessage = await _messageRepository.AddMessageAsync(new Message
+                {
+                    UserId = user.Id,
+                    Content = requestDto.Content,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                var messages = await _messageRepository.GetAllMessagesAsync();
+                string aiResponse = await _geminiService.GetGeminiResponse(messages);
+
+                var aiMessage = await _messageRepository.AddMessageAsync(new Message
+                {
+                    Content = aiResponse,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                return Ok(new { userMessage, aiMessage });
             }
-
-            var userMessage = await _messageRepository.AddMessageAsync(new Message
+            catch (Exception ex)
             {
-                UserId = user.Id,
-                Content = requestDto.Content,
-                CreatedAt = DateTime.UtcNow
-            });
-
-            var messages = await _messageRepository.GetAllMessagesAsync();
-            string aiResponse = await _deepSeekService.GetDeepSeekResponse(messages);
-
-            var aiMessage = await _messageRepository.AddMessageAsync(new Message
-            {
-                Content = aiResponse,
-                CreatedAt = DateTime.UtcNow
-            });
-
-            return Ok(new { userMessage, aiMessage });
+                return StatusCode(500, new { message = "Internal server error", error = ex.Message });
+            }
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "Internal server error", error = ex.Message });
-        }
-    }
 
-
-    [HttpGet("messages")]
+        [HttpGet("messages")]
         public async Task<IActionResult> GetAllMessages()
         {
             var messages = await _messageRepository.GetAllMessagesAsync();

@@ -21,8 +21,8 @@ namespace ChatBot
             builder.Services.AddControllers()
                 .AddNewtonsoftJson(options =>
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-            builder.Services.AddHttpClient<DeepSeekService>(); 
-            builder.Services.AddScoped<DeepSeekService>();
+            builder.Services.AddHttpClient<GeminiService>(); 
+            builder.Services.AddScoped<GeminiService>();
             builder.Services.AddScoped<MessageRepository>();
             builder.Services.AddScoped<SubscriptionPlanRepository>();
             builder.Services.AddScoped<UserSubscriptionRepository>();
