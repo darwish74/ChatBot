@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using ChatBot.Models;
 
@@ -40,15 +41,30 @@ namespace ChatBot.Services
                 "application/json"
             );
 
-            var response = await _httpClient.PostAsync($"{_apiUrl}?key={_apiKey}", jsonContent);
+            int maxRetries = 5;
+            int delayMilliseconds = 2000;
 
-            if (!response.IsSuccessStatusCode)
-                throw new Exception($"Error calling Gemini API: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                var response = await _httpClient.PostAsync($"{_apiUrl}?key={_apiKey}", jsonContent);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseBody);
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseBody);
+                    return jsonResponse.GetProperty("candidates")[0]
+                        .GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString();
+                }
+                if ((int)response.StatusCode == 503 && attempt < maxRetries)
+                {
+                    await Task.Delay(delayMilliseconds);
+                    delayMilliseconds *= 2; 
+                    continue;
+                }
+                return $"Error calling Gemini API: {response.StatusCode} - {responseBody}";
+            }
 
-            return jsonResponse.GetProperty("candidates")[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString();
+            return "Service is currently unavailable. Please try again later.";
         }
     }
 }
